@@ -40,3 +40,101 @@ MAX_PER_RUN = 400
 SLEEP_BASE = 180.0
 # Variation +/- in seconds
 SLEEP_VARIANCE = 50.0
+
+# ===== RANDOM CONTENT =====
+INSTAGRAM_HANDLE = "instagram_handle"
+YOUR_NAME = "name"
+
+SUBJECT       = "TOPICS"
+
+# Subject options (randomly selected when sending)
+SUBJECTS = [
+    "Thanks for listening to my beats",
+    "Thanks for checking out my beats",
+    "A quick note from a rock beatmaker",
+    "Let’s stay in touch around the music",
+    "Send me your rock demos",
+    "I’d love to hear your demos",
+    "Wanna send me your demos?",
+    "Got any rock ideas or demos?",
+    "Let’s trade music and ideas",
+    "Thanks for supporting my beats",
+    "From one musician to another",
+    "For artists who love rock music",
+    "Let’s connect over rock music",
+    "If you’ve got demos, I want to hear them",
+]
+
+
+
+greetings = [
+    "Hello",
+    "Hi there",
+    "Greetings",
+    
+]
+
+thanks_openers = [
+    "Example 1",
+    "Example 2",
+    "Example 3",
+]
+
+about_me_blocks = [
+    "Example 1",
+    "Example 2",
+    "Example 3",
+]
+
+demos_invite_blocks = [
+    "Example 1",
+    "Example 2",
+    "Example 3",
+]
+
+contact_blocks = [
+    f"Example 1 {INSTAGRAM_HANDLE}",
+    f"Example 2 {INSTAGRAM_HANDLE}",
+    f"Example 3 {INSTAGRAM_HANDLE}",
+]
+
+
+creative_stay_in_touch_blocks = [
+    "Example 1",
+    "Example 2",
+    "Example 3",
+]
+
+
+closings = [
+    "Example 1",
+    "Example 2",
+    "Example 3",
+]
+
+signature_blocks = [
+    f"{YOUR_NAME}\n NAME \n",
+]
+
+def make_message(_name=None) -> str:
+    greeting = random.choice(greetings)
+    # combine opening, about and demos into one paragraph
+    paragraph = " ".join([
+        random.choice(thanks_openers),
+        random.choice(about_me_blocks),
+        random.choice(demos_invite_blocks),
+    ])
+    contact = random.choice(contact_blocks)
+    creative = random.choice(creative_stay_in_touch_blocks)
+    closing = random.choice(closings)
+    signature = random.choice(signature_blocks)
+
+    body = (
+        f"{greeting},\n\n"
+        f"{paragraph}\n\n"
+        f"{contact}\n"
+        f"{creative}\n\n"
+        f"{closing}\n"
+        f"{signature}"
+    )
+    return body
