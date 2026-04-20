@@ -49,28 +49,17 @@ SUBJECT       = "TOPICS"
 
 # Subject options (randomly selected when sending)
 SUBJECTS = [
-    "Thanks for listening to my beats",
-    "Thanks for checking out my beats",
-    "A quick note from a rock beatmaker",
-    "Let’s stay in touch around the music",
-    "Send me your rock demos",
-    "I’d love to hear your demos",
-    "Wanna send me your demos?",
-    "Got any rock ideas or demos?",
-    "Let’s trade music and ideas",
-    "Thanks for supporting my beats",
-    "From one musician to another",
-    "For artists who love rock music",
-    "Let’s connect over rock music",
-    "If you’ve got demos, I want to hear them",
+    "Example 1",
+    "Example 2",
+    "Example 3"
 ]
 
 
 
 greetings = [
-    "Hello",
-    "Hi there",
-    "Greetings",
+    "Example 1",
+    "Example 2",
+    "Example 3",
     
 ]
 
@@ -138,3 +127,25 @@ def make_message(_name=None) -> str:
         f"{signature}"
     )
     return body
+
+    # ===== LIST AND SENT RECORDS =====
+
+def load_sent():
+    if not SENT_FILE.exists():
+        return set()
+    with SENT_FILE.open("r", encoding="utf-8") as f:
+        return {line.strip() for line in f if line.strip()}
+
+def append_sent(email: str):
+    with SENT_FILE.open("a", encoding="utf-8") as f:
+        f.write(email + "\n")
+
+def load_emails():
+    if not EMAILS_FILE.exists():
+        print(f"Файл {EMAILS_FILE} не найден")
+        return []
+    with EMAILS_FILE.open("r", encoding="utf-8") as f:
+        emails = [line.strip() for line in f if line.strip()]
+    # Simple filtering
+    emails = [e for e in emails if "@" in e and "." in e]
+    return emails
