@@ -1,0 +1,5 @@
+.env
+emails_sent.txt
+sent_copies/
+__pycache__/
+*.key
