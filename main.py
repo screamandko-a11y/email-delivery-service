@@ -149,3 +149,32 @@ def load_emails():
     # Simple filtering
     emails = [e for e in emails if "@" in e and "." in e]
     return emails
+
+    # ===== SENDING EMAIL =====
+
+def send_email(to_email: str, body_text: str):
+    msg = EmailMessage()
+    msg["From"] = formataddr((FROM_NAME, FROM_EMAIL))
+    msg["To"] = to_email
+    # Choose a random subject from the list and remove trailing question mark (if any)
+    subj = random.choice(SUBJECTS)
+    if subj.strip().endswith('?'):
+        subj = subj.rstrip('?').strip()
+    msg["Subject"] = subj
+    # Reply/Reply-To header
+    msg["Reply-To"] = FROM_EMAIL
+    # For mailings: clear unsubscribe link (helps deliverability)
+    msg["List-Unsubscribe"] = f"<mailto:{FROM_EMAIL}>"
+    # Add Date and Message-ID
+    msg["Date"] = formatdate(localtime=True)
+    try:
+        msg["Message-ID"] = make_msgid(domain=FROM_EMAIL.split("@", 1)[1])
+    except Exception:
+        msg["Message-ID"] = make_msgid()
+
+    plain = body_text
+    html = body_text.replace("\n", "<br>")
+
+    # Set explicit quoted-printable encoding for text parts
+    msg.set_content(plain, subtype="plain", charset="utf-8", cte="quoted-printable")
+    msg.add_alternative(html, subtype="html", charset="utf-8", cte="quoted-printable")
