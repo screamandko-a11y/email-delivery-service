@@ -227,3 +227,54 @@ def send_email(to_email: str, body_text: str):
                     f.write(html + "\n")
             except Exception:
                 traceback.print_exc()
+# ===== MAIN LOOP =====
+
+def main():
+    emails_all = load_emails()
+    if not emails_all:
+        print("There are no valid emails in the file — nothing to send")
+        return
+
+    sent = load_sent()
+    to_send = [e for e in emails_all if e not in sent]
+
+    if not to_send:
+        print("There is no one to send emails to — all emails are already in emails_sent.txt")
+        return
+
+    # Limit per run
+    if len(to_send) > MAX_PER_RUN:
+        print(f"Warning: {len(to_send)} addresses to send — limiting to {MAX_PER_RUN} per run")
+        to_send = to_send[:MAX_PER_RUN]
+
+    print(f"Total addresses: {len(emails_all)}; to send in this run: {len(to_send)}")
+
+    for i, email in enumerate(to_send, start=1):
+        print(f"[{i}/{len(to_send)}] Sending -> {email}")
+        sent_success = False
+
+        try:
+            message_text = make_message()
+            send_email(email, message_text)
+            print("  successfully sent")
+            append_sent(email)
+            sent_success = True
+
+        except Exception:
+            print("  Error while sending:")
+            traceback.print_exc()
+
+        if not sent_success:
+            print("  sending failed, we proceed to the next one without waiting.")
+            continue
+
+        # pause SLEEP_BASE ± SLEEP_VARIANCE
+        offset = random.uniform(-SLEEP_VARIANCE, SLEEP_VARIANCE)
+        sleep_seconds = max(1.0, SLEEP_BASE + offset)
+        print(f"  waiting {int(sleep_seconds)} sec. (≈{int(SLEEP_BASE/60)} min ±{int(SLEEP_VARIANCE)} sec)")
+        time.sleep(sleep_seconds)
+
+    print("All available emails have been processed.")
+
+if __name__ == "__main__":
+    main()
