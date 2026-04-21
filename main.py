@@ -178,3 +178,52 @@ def send_email(to_email: str, body_text: str):
     # Set explicit quoted-printable encoding for text parts
     msg.set_content(plain, subtype="plain", charset="utf-8", cte="quoted-printable")
     msg.add_alternative(html, subtype="html", charset="utf-8", cte="quoted-printable")
+
+     # SSL connection (port 465)
+    context = ssl.create_default_context()
+    local_hostname = FROM_EMAIL.split("@", 1)[1]
+    with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context, local_hostname=local_hostname) as server:
+        # EHLO/HELO will contain your domain — improves trust
+        server.login(SMTP_LOGIN, SMTP_PASSWORD)
+
+        sent_ok = False
+        # If DKIM is configured and dkimpy is available, sign the message
+        if dkim and DKIM_SELECTOR and DKIM_DOMAIN and DKIM_PRIVATE_KEY.exists():
+            unsigned = msg.as_bytes(policy=msg.policy.clone(max_line_length=998))
+            priv = DKIM_PRIVATE_KEY.read_bytes()
+            try:
+                signature = dkim.sign(unsigned, DKIM_SELECTOR.encode(), DKIM_DOMAIN.encode(), priv,
+                                      include_headers=[b"From", b"To", b"Subject", b"Date", b"Message-ID"])
+                # dkim.sign returns the DKIM-Signature header (bytes). Prepend the signature to the original and send raw bytes
+                signed_message = signature + unsigned
+                server.sendmail(FROM_EMAIL, [to_email], signed_message)
+                sent_ok = True
+            except Exception:
+                # If signing fails — log and send without signature
+                traceback.print_exc()
+
+        else:
+            # Send the usual way
+            server.send_message(msg, from_addr=FROM_EMAIL, to_addrs=[to_email])
+            sent_ok = True
+
+        # If the email was sent — save a copy to a separate file
+        if sent_ok:
+            try:
+                copies_dir = Path("sent_copies")
+                copies_dir.mkdir(exist_ok=True)
+                ts = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+                safe_to = to_email.replace('@', '_at_').replace('.', '_')
+                filename = copies_dir / f"{ts}_{safe_to}.txt"
+                with filename.open('w', encoding='utf-8') as f:
+                    f.write(f"To: {to_email}\n")
+                    f.write(f"From: {FROM_EMAIL}\n")
+                    f.write(f"Subject: {msg.get('Subject')}\n")
+                    f.write(f"Date: {msg.get('Date')}\n")
+                    f.write(f"Message-ID: {msg.get('Message-ID')}\n\n")
+                    f.write("--- Plain text ---\n")
+                    f.write(plain + "\n\n")
+                    f.write("--- HTML ---\n")
+                    f.write(html + "\n")
+            except Exception:
+                traceback.print_exc()
